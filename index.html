@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    <title>Laboratorio 1 IA</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.13.0/dist/tf.min.js"></script>
+    <link  rel = "stylesheet"  href="index.css">
+
+</head>
+<body>
+    <script type="text/javascript" >
+
+        var modelo = null;
+        //carga de modelo
+        (async()=> {
+            console.log("Cargando modelo...");
+            modelo = await tf.loadLayersModel("model.json");
+            console.log("Modelo cargado...");
+        }) ();
+        function predecir() {
+            if (modelo != null) {
+                // Obtener imagen del input file
+                const imagen = document.getElementById('imagen').files[0];
+
+                    if (imagen) {
+                        const img = new Image();
+                        img.src = URL.createObjectURL(imagen);
+
+                        img.onload = function() {
+                            const canvas = document.getElementById("canvas");
+                            canvas.width = 180;
+                            canvas.height = 180;
+
+                            const context = canvas.getContext("2d");
+                            context.drawImage(img, 0, 0, 180, 180);
+
+                            // Obtener tensor de entrada
+                            const tensor = tf.tidy(() => {
+                                // Obtener datos de píxeles de la imagen
+                                const imgData = context.getImageData(0, 0, 180, 180).data;
+                                const numPixels = 180 * 180;
+          
+                                 // Crear arreglo de valores de píxeles normalizados
+                                const pixels = new Float32Array(numPixels * 3);
+                                let pixelIndex = 0;
+                                for (let i = 0; i < numPixels; i++) {
+                                    for (let j = 0; j < 3; j++) {
+                                        pixels[pixelIndex] = imgData[i * 4 + j] / 255;
+                                        pixelIndex++;
+                                     }
+                                }
+
+                            // Crear tensor 4D a partir del arreglo de píxeles normalizados
+                            let tensor = tf.tensor4d(pixels, [1, 180, 180, 3]);
+
+                            // Redimensionar la imagen a 180x180 utilizando tf.image.resizeBilinear()
+                             tensor = tf.image.resizeBilinear(tensor, [180, 180]);
+
+                            // Verificar que el tensor tenga 3 canales de color
+                            if (tensor.shape[3] !== 3) {
+                                throw new Error('Imagen no tiene 3 canales de color');
+                            }
+
+             return tensor;
+        });
+
+        // Realizar predicción con el modelo
+        const resultado = modelo.predict(tensor).dataSync();
+        var mayor = Math.max(...resultado);
+        var flores = ["Diente de leon", "Margarita" , "Tulipan", "Girasol", "Rosa"];
+
+        if(mayor>0.6){
+            for (var i = 0; i<resultado.length; i++){
+                if(mayor == resultado[i]){
+                    document.getElementById("resultados").innerHTML = flores[i];
+                }
+            }
+        }
+        else{
+            document.getElementById("resultados").innerHTML = "No se puede determinar";
+        }
+      }
+    }
+  }
+}
+
+
+    </script>
+
+    <div class="titulo">
+        <h1>Laboratorio 1</h1>
+        <h2>Inteligencia Artificial</h2>
+        <ul>
+            <li>Paulo Hernandez</li>
+            <li>Benjamin Castro</li>
+        </ul>
+        <p>Para la categorización de imágenes de flores utilizando TensorFlow y Keras, primero necesitamos construir un modelo de aprendizaje profundo capaz de reconocer patrones y características relevantes en las imágenes. Esto se puede lograr mediante la construcción de una red neuronal convolucional (CNN) que consta de múltiples capas convolucionales y de agrupación, seguidas por una o varias capas densas de clasificación.</p>
+		<p>El siguiente paso es preparar los datos de entrenamiento para el modelo. Esto implica recopilar y etiquetar un conjunto de imágenes de flores que incluyan las cuatro categorías de interés: diente de león, margarita, tulipán, girasol y rosa. Estas imágenes deben procesarse para que tengan un tamaño uniforme y estén en un formato adecuado para el modelo.</p>
+		<p>A continuación, se entrena el modelo utilizando los datos preparados. Durante el entrenamiento, el modelo ajusta sus pesos para minimizar la función de pérdida, lo que permite mejorar su capacidad para predecir la categoría correcta de una imagen.</p>
+		<p>Finalmente, se puede evaluar el modelo utilizando un conjunto de datos de prueba para medir su capacidad para generalizar y hacer predicciones precisas en imágenes nuevas. Si los resultados son satisfactorios, el modelo puede utilizarse para hacer predicciones en imágenes no vistas anteriormente y clasificarlas como diente de león, margarita, tulipán, girasol o rosa.</p>
+
+    </div>
+    <div class="Central">
+        <form action="">
+            <input id="imagen" type="file" name="imagen">
+            <canvas id="canvas" width="180" height="180"></canvas>
+            <input type="button" value="Testear" onclick="predecir()">
+        </form>
+    </div> 
+    <div id="resultados"></div>
+    <script src="index.js"></script>
+</body>
+</html>
