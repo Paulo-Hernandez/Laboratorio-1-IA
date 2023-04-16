@@ -1,5 +1,5 @@
 body {
-    background-color: #f2f2f2;
+    background-color: #95c799;
     font-family: Arial, sans-serif;
 }
 
@@ -57,12 +57,20 @@ input[type="button"] {
 }
 
 #resultados {
+    font-size: 2rem;
     margin-top: 50px;
+    margin-bottom: 50 px;
     text-align: center;
 }
-p {
+.titulo, .Central, #resultados {
+    margin: 0 auto;
+    max-width: 800px;
+    padding: 0 20px;
+}
+  
+p{
     font-size: 1.1rem;
     line-height: 1.5;
-    margin: 20px 0;
+    margin: 40px 0;
     text-align: justify;
 }
